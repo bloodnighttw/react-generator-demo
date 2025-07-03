@@ -1,5 +1,5 @@
 import "./App.css";
-import useAsyncGenerator from "./utils/useAsyncGenerator";
+import useAsyncGeneratorWalker from "./utils/useAsyncGenerator";
 import useGenerator from "./utils/useGenerator";
 import waitTime from "./utils/waitTime";
 
@@ -42,7 +42,7 @@ function Generator() {
 }
 
 function AsyncGenerator() {
-  const [c] = useAsyncGenerator(asyncGenerator(), "Loading...");
+  const [c] = useAsyncGeneratorWalker(asyncGenerator(), "Loading...");
 
   return c;
 }

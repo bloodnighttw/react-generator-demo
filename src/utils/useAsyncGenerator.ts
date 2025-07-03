@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-export default function useAsyncGenerator<T, U = undefined>(gen: AsyncGenerator<T>, init?: U) {
+export default function useAsyncGeneratorWalker<T, U = undefined>(gen: AsyncGenerator<T>, init?: U) {
 
     const ref = useRef(gen);
     const [content, setContent] = useState<T | U | undefined>(init);
