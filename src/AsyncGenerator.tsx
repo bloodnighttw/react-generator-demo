@@ -3,7 +3,7 @@ import useAsyncGenerator, { type ReAsyncGenerator } from "./utils/useAsyncGenera
 import waitTime from "./utils/waitTime";
 
 
-async function* asyncGenerator(): ReAsyncGenerator<JSX.Element> {
+export async function* AsyncGenerator(): ReAsyncGenerator<JSX.Element> {
   const ms = 1500;
 
   yield <div className="text-4xl text-amber-300">hi</div>;
@@ -19,8 +19,8 @@ async function* asyncGenerator(): ReAsyncGenerator<JSX.Element> {
   return <div className="text-4xl text-amber-600">finished</div>;
 }
 
-export function AsyncGenerator() {
-  const { content, done, next, pending } = useAsyncGenerator(asyncGenerator);
+export function AsyncGeneratorTest() {
+  const { content, done, next, pending } = useAsyncGenerator(AsyncGenerator);
 
   return <div>
     {content}

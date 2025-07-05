@@ -1,6 +1,7 @@
 import "./App.css";
 import { Generator } from "./Generator";
-import { AsyncGenerator } from "./AsyncGenerator";
+import { AsyncGenerator, AsyncGeneratorTest } from "./AsyncGenerator";
+import AsyncGeneratorWalker from "./utils/AsyncGenerator";
 
 function App() {
   return (
@@ -8,7 +9,9 @@ function App() {
       <h1 className="text-4xl text-amber-300">React Generator Example</h1>
       <Generator />
       <h1 className="text-4xl text-amber-500">Async Generator Example</h1>
-      <AsyncGenerator />
+      <AsyncGeneratorTest />
+      <h1>async walker generator</h1>
+      <AsyncGeneratorWalker generator={AsyncGenerator} />
     </div>
   );
 }
