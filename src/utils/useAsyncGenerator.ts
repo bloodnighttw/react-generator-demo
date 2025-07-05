@@ -28,7 +28,7 @@ export type AsyncGeneratorHook<T, A = unknown, Error = undefined> =
 // T => yield *T* or return *T*
 // A => the generator function argument type
 // N => next function argument type, which is also the what yield returns in generator
-export default function useAsyncGeneratorWalker<
+export default function useAsyncGenerator<
   E = undefined,
   T = unknown,
   A = unknown,

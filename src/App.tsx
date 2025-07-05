@@ -1,6 +1,6 @@
 import type { JSX } from "react";
 import "./App.css";
-import useAsyncGeneratorWalker from "./utils/useAsyncGenerator";
+import useAsyncGenerator from "./utils/useAsyncGenerator";
 import useGenerator, { type ReGenerator } from "./utils/useGenerator";
 import waitTime from "./utils/waitTime";
 
@@ -43,7 +43,7 @@ function Generator() {
 }
 
 function AsyncGenerator() {
-  const {content,done,next, pending} = useAsyncGeneratorWalker(asyncGenerator);
+  const {content,done,next, pending} = useAsyncGenerator(asyncGenerator);
 
   return <div>
     {content}
