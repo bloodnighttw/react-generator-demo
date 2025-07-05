@@ -2,54 +2,70 @@ import { useCallback, useRef, useState } from "react";
 
 type MayVoid<T> = T | void;
 
-interface GeneratorHook<T,A = void> {
-    done: boolean;
-    state: T;
-    next: (args: A) => void;
+interface GeneratorHook<T, A = void> {
+  done: boolean;
+  state: T;
+  next: (args: A) => void;
 }
 
-export type ReGenerator<T,A = unknown> = Generator<T, MayVoid<T>, A> ;
+export type ReGenerator<T, A = unknown> = Generator<T, MayVoid<T>, A>;
 
-export default function useGenerator<T,A = void>(genFunc: ()=> ReGenerator<T,A>): GeneratorHook<T,A>;
+export default function useGenerator<T, A = void>(
+  genFunc: () => ReGenerator<T, A>
+): GeneratorHook<T, A>;
 
-export default function useGenerator<T,A = void, B = undefined>(genFunc: (args: B)=>ReGenerator<T,A>, args: B): GeneratorHook<T,A>;
+export default function useGenerator<T, A = void, B = undefined>(
+  genFunc: (args: B) => ReGenerator<T, A>,
+  args: B
+): GeneratorHook<T, A>;
 
-export default function useGenerator<T,A = void, B = undefined>(genFunc: (args?: B)=>ReGenerator<T,A>, args?: B) {
+export default function useGenerator<T, A = void, B = undefined>(
+  genFunc: (args?: B) => ReGenerator<T, A>,
+  args?: B
+) {
+  const generatorData = useRef<{
+    generator: ReGenerator<T, A> | null;
+    initialValue: T;
+    initialDone: boolean;
+  } | null>(null);
 
-    const ref = useRef<ReGenerator<T,A>>(null);
-    const current = useRef<T>(null);
-    const doneRef = useRef(false);
+  // Initialize once - works for both SSR and client
+  if (generatorData.current === null) {
+    // Initialize generator and get first value synchronously
+    // This works in both SSR and client environments
+    const initializeGenerator = () => {
+      const generator = genFunc(args);
+      const result = generator.next();
+      return {
+        generator,
+        initialValue: result.value as T,
+        initialDone: result.done || false,
+      };
+    };
+    generatorData.current = initializeGenerator();
+  }
 
-    // if the generator is not initialized, initialize it
-    // this will only happen once, when the component is mounted
-    // and will not be called again unless the component is unmounted and mounted again
-    if(ref.current === null) {
-        ref.current = genFunc(args);
-        const temp = ref.current.next();
-        current.current = temp.value as T;
-        doneRef.current = temp.done || false;
-    }    
+  const [state, setState] = useState<T>(generatorData.current.initialValue);
+  const [done, setDone] = useState<boolean>(generatorData.current.initialDone);
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [_, set] = useState(0);
+  const next = useCallback((args: A) => {
+    if (!generatorData.current?.generator) return;
 
-    const updater = useCallback((args: A) => {
-        console.log("updater called");
-        const { done, value} = ref.current!.next(args);
-        doneRef.current = done || false;
-        if(done && value){
-            current.current = value;
-        } else if(!done) {
-            current.current = value;
-        }
+    const { done: isDone, value } = generatorData.current.generator.next(args);
+    const newDone = isDone || false;
 
-        // make this custom hook re-render
-        set((prev) => prev+1);
-    },[])
+    setDone(newDone);
 
-    return {
-        done: doneRef.current,
-        state: current.current,
-        next: updater,
+    if (newDone && value !== undefined) {
+      setState(value);
+    } else if (!newDone) {
+      setState(value);
     }
+  }, []);
+
+  return {
+    done,
+    state,
+    next,
+  };
 }
