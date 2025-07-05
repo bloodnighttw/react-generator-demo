@@ -2,26 +2,40 @@ import { useCallback, useRef, useState } from "react";
 
 type MayVoid<T> = T | void;
 
+interface GeneratorHook<T,A = void> {
+    done: boolean;
+    state: T;
+    next: (args: A) => void;
+}
+
 export type ReGenerator<T,A = unknown> = Generator<T, MayVoid<T>, A> ;
 
-export default function useGenerator<T,A = void>(gen: ReGenerator<T,A>) {
+export default function useGenerator<T,A = void>(genFunc: ()=> ReGenerator<T,A>): GeneratorHook<T,A>;
 
-    const ref = useRef(gen);
+export default function useGenerator<T,A = void, B = undefined>(genFunc: (args: B)=>ReGenerator<T,A>, args: B): GeneratorHook<T,A>;
 
-    // to avoid calling next() on the generator on every render, we will use a ref to store the generator
-    const firstcallRef = useRef(true);
+export default function useGenerator<T,A = void, B = undefined>(genFunc: (args?: B)=>ReGenerator<T,A>, args?: B) {
 
-    const temp = firstcallRef.current ? ref.current.next() : undefined;
+    const ref = useRef<ReGenerator<T,A>>(null);
+    const current = useRef<T>(null);
+    const doneRef = useRef(false);
 
-    const current = useRef<T>(temp?.value as T);
-    const doneRef = useRef(temp?.done || false);
+    // if the generator is not initialized, initialize it
+    // this will only happen once, when the component is mounted
+    // and will not be called again unless the component is unmounted and mounted again
+    if(ref.current === null) {
+        ref.current = genFunc(args);
+        const temp = ref.current.next();
+        current.current = temp.value as T;
+        doneRef.current = temp.done || false;
+    }    
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [_, set] = useState(0);
 
     const updater = useCallback((args: A) => {
         console.log("updater called");
-        const { done, value} = ref.current.next(args);
+        const { done, value} = ref.current!.next(args);
         doneRef.current = done || false;
         if(done && value){
             current.current = value;
@@ -33,8 +47,9 @@ export default function useGenerator<T,A = void>(gen: ReGenerator<T,A>) {
         set((prev) => prev+1);
     },[])
 
-    // we will return current value, a function to advance the generator, and a state to indicate if the generator is done
-
-    firstcallRef.current = false;
-    return [current.current,updater, doneRef.current] as const;
+    return {
+        done: doneRef.current,
+        state: current.current,
+        next: updater,
+    }
 }

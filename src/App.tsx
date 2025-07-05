@@ -14,7 +14,7 @@ function* generator(): ReGenerator<JSX.Element, number> {
 }
 
 async function* asyncGenerator() {
-  const wait = 1500; // 3000ms = 3 seconds
+  const wait = 1500; 
 
   yield <div className="text-4xl text-amber-300">hi</div>;
   await waitTime(wait);
@@ -30,13 +30,13 @@ async function* asyncGenerator() {
 }
 
 function Generator() {
-  const [current, next, done] = useGenerator(generator());
+  const {state: current, done, next} = useGenerator(generator);  
 
   return (
     <div>
       {current}
       <button onClick={() => next(0)} disabled={done}>
-        Next
+        {done ? "Done" : "Next"}
       </button>
     </div>
   );
