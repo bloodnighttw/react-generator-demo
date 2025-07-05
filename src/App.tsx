@@ -1,15 +1,16 @@
+import type { JSX } from "react";
 import "./App.css";
 import useAsyncGeneratorWalker from "./utils/useAsyncGenerator";
-import useGenerator from "./utils/useGenerator";
+import useGenerator, { type ReGenerator } from "./utils/useGenerator";
 import waitTime from "./utils/waitTime";
 
-function* generator() {
-  while (true) {
-    yield <div className="text-4xl text-amber-300">hi</div>;
-    yield <div className="text-4xl text-amber-500">hello</div>;
-    yield <div className="text-4xl text-amber-700">world</div>;
-    yield <div className="text-4xl text-amber-900">!</div>;
-  }
+function* generator(): ReGenerator<JSX.Element, number> {
+  const i = yield <div className="text-4xl text-amber-300">hi</div>;
+  console.log("Generator received:", i);
+  yield <div className="text-4xl text-amber-500">hello</div>;
+  yield <div className="text-4xl text-amber-700">world</div>;
+  yield <div className="text-4xl text-amber-900">!</div>;
+  return <div>hi</div>
 }
 
 async function* asyncGenerator() {
@@ -34,7 +35,7 @@ function Generator() {
   return (
     <div>
       {current}
-      <button onClick={() => next()} disabled={done}>
+      <button onClick={() => next(0)} disabled={done}>
         Next
       </button>
     </div>

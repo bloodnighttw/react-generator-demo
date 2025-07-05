@@ -1,6 +1,10 @@
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
-export default function useGenerator<T>(gen: Generator<T>){
+type MayVoid<T> = T | void;
+
+export type ReGenerator<T,A = unknown> = Generator<T, MayVoid<T>, A> ;
+
+export default function useGenerator<T,A = void>(gen: ReGenerator<T,A>) {
 
     const ref = useRef(gen);
 
@@ -13,19 +17,21 @@ export default function useGenerator<T>(gen: Generator<T>){
     const doneRef = useRef(temp?.done || false);
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [_, set] = useState(false);
+    const [_, set] = useState(0);
 
-    const updater = () => {
+    const updater = useCallback((args: A) => {
         console.log("updater called");
-        const { done, value} = ref.current.next();
+        const { done, value} = ref.current.next(args);
         doneRef.current = done || false;
-        if(value)
+        if(done && value){
             current.current = value;
-
+        } else if(!done) {
+            current.current = value;
+        }
 
         // make this custom hook re-render
-        set((prev) => !prev);
-    }
+        set((prev) => prev+1);
+    },[])
 
     // we will return current value, a function to advance the generator, and a state to indicate if the generator is done
 
