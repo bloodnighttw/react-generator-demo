@@ -1,20 +1,21 @@
+import type { JSX } from "react";
 import useAbortSignal from "./utils/useAbortController";
-import useAsyncGenerator from "./utils/useAsyncGenerator";
+import useAsyncGenerator, { type ReAsyncGenerator } from "./utils/useAsyncGenerator";
 import waitTime from "./utils/waitTime";
 
 interface Props {
   signal: AbortSignal;
 }
 
-async function* asyncGenerator(args: Props) {
+async function* asyncGenerator(args: Props): ReAsyncGenerator<JSX.Element> {
   const ms = 1500;
   const { signal } = args;
 
   yield <div className="text-4xl text-amber-300">hi</div>;
   await waitTime({ ms, signal });
-  yield <div className="text-4xl text-amber-500">hello</div>;
+  const i = yield <div className="text-4xl text-amber-500">hello</div>;
   await waitTime({ ms, signal });
-  yield <div className="text-4xl text-amber-700">world</div>;
+  yield <div className="text-4xl text-amber-700">world {i ?? 'undefined'}</div>;
   await waitTime({ ms, signal });
   yield <div className="text-4xl text-amber-900">!</div>;
   await waitTime({ ms, signal });

@@ -2,7 +2,7 @@ import { useCallback, useRef, useState } from "react";
 
 type MayVoid<T> = T | void;
 
-type ReAsyncGenerator<T, A = void> = AsyncGenerator<T, MayVoid<T>, A>;
+export type ReAsyncGenerator<T, A = void> = AsyncGenerator<T, MayVoid<T>, A>;
 
 interface AsyncGeneratorHookWithArgs<T, A = void> {
   content: T | undefined;
@@ -29,12 +29,12 @@ export type AsyncGeneratorHook<T, A = unknown> =
 // A => the generator function argument type
 // N => next function argument type, which is also the what yield returns in generator
 
-// Overload for generator functions with required args
+// Overload for generator functions with required args - infer N from generator
 export default function useAsyncGenerator<
   T = unknown,
   A = unknown,
   N = void
->(gen: (args: A) => ReAsyncGenerator<T, N>, args: A): AsyncGeneratorHookWithoutArgs<T>;
+>(gen: (args: A) => ReAsyncGenerator<T, N>, args: A): N extends void ? AsyncGeneratorHookWithoutArgs<T> : AsyncGeneratorHookWithArgs<T, N>;
 
 // Overload for generator functions with optional args
 export default function useAsyncGenerator<
@@ -91,6 +91,6 @@ export default function useAsyncGenerator<
     done,
     pending,
     error,
-    next: next as () => Promise<void>,
-  };
+    next,
+  } as N extends void ? AsyncGeneratorHookWithoutArgs<T> : AsyncGeneratorHookWithArgs<T, N>;
 }
