@@ -10,9 +10,9 @@ interface AsyncGeneratorProps<T,E,N = undefined,A = undefined> {
 
 export default function AsyncGeneratorWalker<T extends JSX.Element,E,N,A>(props: AsyncGeneratorProps<T,E,N,A>) {
 
-    const [value, setValue] = useState(props.init);
     const [gen] = useState(() => props.generator(props.args));
-
+    const [value, setValue] = useState(props.init);
+    
     useEffect(() => {
         const a = async () => {
 
