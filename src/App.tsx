@@ -10,27 +10,27 @@ function* generator(): ReGenerator<JSX.Element, number> {
   yield <div className="text-4xl text-amber-500">hello</div>;
   yield <div className="text-4xl text-amber-700">world</div>;
   yield <div className="text-4xl text-amber-900">!</div>;
-  return <div>hi</div>
+  return <div>hi</div>;
 }
 
 async function* asyncGenerator() {
-  const wait = 1500; 
+  const ms = 1500;
 
   yield <div className="text-4xl text-amber-300">hi</div>;
-  await waitTime(wait);
+  await waitTime({ ms });
   yield <div className="text-4xl text-amber-500">hello</div>;
-  await waitTime(wait);
+  await waitTime({ ms });
   yield <div className="text-4xl text-amber-700">world</div>;
-  await waitTime(wait);
+  await waitTime({ ms });
   yield <div className="text-4xl text-amber-900">!</div>;
-  await waitTime(wait);
+  await waitTime({ ms });
   yield <div className="text-4xl text-amber-400">done</div>;
-  await waitTime(wait);
-  yield <div className="text-4xl text-amber-600">finished</div>;
+  await waitTime({ ms });
+  return <div className="text-4xl text-amber-600">finished</div>;
 }
 
 function Generator() {
-  const {state: current, done, next} = useGenerator(generator);  
+  const { state: current, done, next } = useGenerator(generator);
 
   return (
     <div>
@@ -43,9 +43,15 @@ function Generator() {
 }
 
 function AsyncGenerator() {
-  const [c] = useAsyncGeneratorWalker(asyncGenerator(), "Loading...");
+  const {content,done,next, pending} = useAsyncGeneratorWalker(asyncGenerator);
 
-  return c;
+  return <div>
+    {content}
+    <button onClick={() => next(undefined)} disabled={done || pending}>
+      {done ? "Done" : pending ? "pending" : "Next"}
+    </button>
+    {done && <div className="text-4xl text-amber-600">Finished</div>}
+  </div>;
 }
 
 function App() {

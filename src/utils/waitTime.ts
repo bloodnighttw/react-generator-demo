@@ -1,5 +1,17 @@
-export default function waitTime(ms: number): Promise<void> {
+interface waitTimeProps {
+    ms: number;
+    signal?: AbortSignal;
+}
+
+
+export default function waitTime(props: waitTimeProps): Promise<void> {
     return new Promise((resolve) => {
-        setTimeout(resolve, ms);
+        const id= setTimeout(resolve, props.ms);
+        if (props.signal) {
+            props.signal.addEventListener("abort", () => {
+                clearTimeout(id);
+                resolve();
+            }, { once: true });
+        }
     });
 }

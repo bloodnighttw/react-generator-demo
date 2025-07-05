@@ -1,36 +1,62 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
-export default function useAsyncGeneratorWalker<T, U = undefined>(gen: AsyncGenerator<T>, init?: U) {
+type ReAsyncGenerator<T,A = void> = AsyncGenerator<T,T,A>
 
-    const ref = useRef(gen);
-    const [content, setContent] = useState<T | U | undefined>(init);
-    const [pending, setPending] = useState(true);
+interface AsyncGeneratorHook<T, N = void, Error = undefined> {
+    content: T | undefined;
+    done: boolean;
+    pending: boolean;
+    error: Error | null;
+    next: (args: N) => Promise<void>;
+}
 
-    useEffect(() => {
+export default function useAsyncGeneratorWalker<T, N = void, E = undefined>(gen: () => ReAsyncGenerator<T, N>) {
 
-        const handler = (promise?: Promise<IteratorResult<T>>) => {
-            console.log("handler called");
+    const ref = useRef<ReturnType<typeof gen>>(null);
 
-            if (!promise) return handler(ref.current.next());
-           
-            promise.then((result) => {
+    if(!ref.current) {
+        ref.current = gen();
+    }
 
-                const { done, value } = result;
-                console.log("result", value, done);
-                if(value)
-                    setContent(value);
-                if (!done) {
-                    handler(ref.current.next());
-                } else {
-                    setPending(false);
-                }
-            })
-   
+    const [error, setError] = useState<Error | null>(null);
+    const [content, setContent] = useState<T | undefined>(undefined);
+    const [pending, setPending] = useState(false);
+    const [done, setDone] = useState(false);
+
+    const next = useCallback(async (args: N) => {
+        if(!ref.current) return;
+        setPending(true);
+
+        try {
+            const { value, done } = await ref.current.next(args);
+            if(done) {
+                setDone(true);
+                return;
+            }
+
+            if(value !== undefined) {
+                setContent(value);
+            } else if(!done) {
+                setContent(undefined);
+            }
+
+        } catch (err) {
+            setError(err as Error);
+            setContent(undefined);
+            setDone(true);
+            console.error("Error in async generator:", err);
+        } finally {
+            setPending(false);
         }
-        handler()
-
-    },[gen])
         
-    return [content, pending] as const;
+    },[])
+
+    return {
+        content,
+        done,
+        pending,
+        error,
+        next
+    } as AsyncGeneratorHook<T, N, E>;
 
 }
